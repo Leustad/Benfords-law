@@ -2,12 +2,14 @@ import os
 
 import matplotlib.pyplot as plt
 
+ROOT = 'source'
+
 
 class BenfordsLaw:
     guidelines = [30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6]
 
     def __init__(self):
-        self.file_names = [name for name in os.listdir('./source') if '.txt' in name]
+        self.file_names = [name for name in os.listdir(f'./{ROOT}') if '.txt' in name]
         self.pool_size = 0
         self.numbers = []
         self.counts = {}
@@ -18,14 +20,19 @@ class BenfordsLaw:
         self.counts = {}
 
     def get_numbers(self, filename):
-        for i in self.numbers:
-            first_digit = str(i)[0]
-            if first_digit not in self.counts.keys():
-                self.counts[first_digit] = 0
-            self.counts[first_digit] += 1
+        if len(self.numbers) > 0:
+            for i in self.numbers:
+                first_digit = str(i)[0]
+                if first_digit not in self.counts.keys():
+                    self.counts[first_digit] = 0
+                self.counts[first_digit] += 1
 
-        self.counts = {k: self.counts[k] for k in sorted(self.counts)}
-        self.report(filename)
+            self.counts = {k: self.counts[k] for k in sorted(self.counts)}
+
+            if self.counts.keys():
+                self.report(filename)
+        else:
+            print(f'{filename} has no data usable data')
 
     def report(self, filename):
         numbers = [k for k in self.counts.keys()]
@@ -75,13 +82,21 @@ class BenfordsLaw:
         plt.clf()
 
     def run(self):
-        for file_name in self.file_names:
-            self._clear()
-            with open(f'source/{file_name}', 'r') as file:
-                for _ in file.readlines():
-                    self.pool_size += 1
-                    self.numbers.append(_)
-            self.get_numbers(file_name.split('.')[0])
+        if len(self.file_names) > 0:
+            for file_name in self.file_names:
+                self._clear()
+                with open(f'{ROOT}/{file_name}', 'r') as file:
+                    for line in file.readlines():
+                        try:
+                            line = int(line.rstrip().replace(',', '').replace('.', ''))
+                            self.pool_size += 1
+                            self.numbers.append(line)
+                        except Exception as e:
+                            print(e)
+
+                self.get_numbers(file_name.split('.')[0])
+        else:
+            print('No .txt file was found !!')
 
 
 def main():
